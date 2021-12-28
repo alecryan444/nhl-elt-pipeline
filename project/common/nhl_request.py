@@ -22,8 +22,8 @@ def extract_game_ids_to_list(ds, ti):
             game_id = game['gamePk']
             
             game_id_list.append(game_id)
-                
-    list_len = len(game_id_list)
+
+    print(game_id_list)
     
     ti.xcom_push(key = 'game_id_list', value = game_id_list)
 
