@@ -40,6 +40,7 @@ def extract_game_plays(game_id_list):
 
     return json_list
 
+
 def extract_game_data(ds, ti, **kwargs):
     '''Extracts/flattens game play data from NHL API JSON response object'''
 
@@ -153,6 +154,7 @@ def extract_game_play_players(ds, ti):
         json_obj = []
     
     return json_obj
+    
 
 def extract_player_metadata(ds, ti):
     '''Extracts/flattens game player metadata from NHL API JSON response object'''
