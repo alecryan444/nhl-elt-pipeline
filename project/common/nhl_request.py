@@ -73,9 +73,14 @@ def extract_game_data(ds, ti, **kwargs):
 
         plays_list.append(plays)
 
-    df = pd.concat(plays_list, ignore_index=True)
+    try:
+        df = pd.concat(plays_list, ignore_index=True)
 
-    json_obj = df.to_json(orient='records')
+        json_obj = df.to_json(orient='records')
+    
+    except ValueError:
+        #Produced when nothing to concatenate/ no player data is returned
+        json_obj = []
     
     return json_obj
 
@@ -100,9 +105,14 @@ def extract_game_metadata(ds, ti):
         
         game_metadata_list.append(game_metadata)
 
-    df = pd.concat(game_metadata_list, ignore_index=True)
+    try:
+        df = pd.concat(game_metadata_list, ignore_index=True)
 
-    json_obj = df.to_json(orient='records')
+        json_obj = df.to_json(orient='records')
+    
+    except ValueError:
+        #Produced when nothing to concatenate/ no player data is returned
+        json_obj = []
     
     return json_obj
 

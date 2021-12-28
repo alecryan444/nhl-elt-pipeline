@@ -1,5 +1,4 @@
 from airflow import DAG
-#from datetime import timedelta, datetime
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
@@ -14,10 +13,16 @@ from common.nhl_request import extract_game_play_players
 
 default_args = {
     'owner':'airflow',
-    'start_date':'2021-12-26' #start of preseason
+    'start_date':'2021-09-26' #start of preseason,
 }
 
-with DAG('nhl_elt', default_args=default_args, description='NHL ELT pipeline for analytics.', schedule_interval='@daily') as dag:
+with DAG(
+    'nhl_elt', 
+    default_args=default_args, 
+    description='NHL ELT pipeline for analytics.',
+    schedule_interval='@daily',
+    catchup=False
+    ) as dag:
 
     start = DummyOperator(
         task_id='start'
@@ -59,4 +64,4 @@ with DAG('nhl_elt', default_args=default_args, description='NHL ELT pipeline for
     )
 
     
-start >> extract_game_ids_to_list >> request_nhl_data >> end
+    start >> extract_game_ids_to_list >> request_nhl_data >> end
