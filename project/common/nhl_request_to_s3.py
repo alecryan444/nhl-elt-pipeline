@@ -1,13 +1,11 @@
 import requests
 from datetime import datetime
 import pandas as pd
-import awswrangler as wr
-import boto3
+from common.s3.s3_functions import upload_df_to_s3
 
 base_url = 'https://statsapi.web.nhl.com/api/v1'
 
 BUCKET = 'nhl-db-data'
-
 
 def extract_game_ids_to_list(ds, ti, task):
     """Creates list of game_ids that can be used to get player stats"""
@@ -79,21 +77,11 @@ def stage_game_data_s3(ti, task):
 
     if len(plays_list) == 0:
         print("Nothing to load.")            
-    else:  
+    else:
         df = pd.concat(plays_list, ignore_index=True)
 
-        if df.empty == False:
-
-            print(df.head())
-    
-            #S3
-            session = boto3.Session(profile_name='aryan')
-            subfolder = task.task_id
-            write_path = f's3://{BUCKET}/{subfolder}/'
-            print(write_path)
-            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
-        else:
-            print("Dataframe is empty. Nothing to load.")
+        #Write df to s3
+        upload_df_to_s3(df, BUCKET, task.task_id, ['gamePartition'])
 
 
 def stage_game_metadata_s3(ti, task):
@@ -121,17 +109,8 @@ def stage_game_metadata_s3(ti, task):
     else:
         df = pd.concat(game_metadata_list, ignore_index=True)
 
-        if df.empty == False:
-            print(df.head())
-    
-            #S3
-            session = boto3.Session(profile_name='aryan')
-            subfolder = task.task_id
-            write_path = f's3://{BUCKET}/{subfolder}/'
-            print(write_path)
-            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
-        else:
-            print("Dataframe is empty. Nothing to load.")
+        #Write df to s3
+        upload_df_to_s3(df, BUCKET, task.task_id, ['gamePartition'])
 
 
 def stage_game_play_players_s3(ti, task):
@@ -176,18 +155,9 @@ def stage_game_play_players_s3(ti, task):
     else:
         df = pd.concat(game_play_players_list, ignore_index=True)
 
-        if df.empty == False:
-
-            print(df.head())
-    
-            #S3
-            session = boto3.Session(profile_name='aryan')
-            subfolder = task.task_id
-            write_path = f's3://{BUCKET}/{subfolder}/'
-            print(write_path)
-            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
-        else:
-            print("Dataframe is empty. Nothing to load.")
+        #Write df to s3
+        upload_df_to_s3(df, BUCKET, task.task_id, ['gamePartition'])
+            
 
 def stage_game_play_players_metadata_s3(ti, task):
     '''Extracts/flattens game player metadata from NHL API JSON response object'''
@@ -230,17 +200,7 @@ def stage_game_play_players_metadata_s3(ti, task):
     if len(player_metadata_df_list) == 0:
         print("Nothing to load.")            
     else:
-        df = pd.concat(player_metadata_df_list, ignore_index=True)
+        df = pd.concat(player_metadata_list, ignore_index=True)
 
-        if df.empty == False:
-
-            print(df.head())
-    
-            #S3
-            session = boto3.Session(profile_name='aryan')
-            subfolder = task.task_id
-            write_path = f's3://{BUCKET}/{subfolder}/'
-            print(write_path)
-            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
-        else:
-            print("Dataframe is empty. Nothing to load.")
+        #Write df to s3
+        upload_df_to_s3(df, BUCKET, task.task_id, ['gamePartition'])
