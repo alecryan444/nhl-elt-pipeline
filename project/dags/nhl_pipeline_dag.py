@@ -3,15 +3,15 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
 
-from common.nhl_request_to_s3 import extract_game_ids_to_list
-from common.nhl_request_to_s3 import stage_game_data_s3
-from common.nhl_request_to_s3 import stage_game_metadata_s3
-from common.nhl_request_to_s3 import stage_game_play_players_s3
-from common.nhl_request_to_s3 import stage_game_play_players_metadata_s3
+from common.nhl.nhl_request_to_s3 import extract_game_ids_to_list
+from common.nhl.nhl_request_to_s3 import stage_game_data_s3
+from common.nhl.nhl_request_to_s3 import stage_game_metadata_s3
+from common.nhl.nhl_request_to_s3 import stage_game_play_players_s3
+from common.nhl.nhl_request_to_s3 import stage_game_play_players_metadata_s3
 
 default_args = {
     'owner':'airflow',
-    'start_date':'2021-09-26' #start of preseason,
+    'start_date':'2021-09-26' #start of 2021-22 preseason,
 }
 
 with DAG(
@@ -19,7 +19,7 @@ with DAG(
     default_args=default_args, 
     description='NHL ELT pipeline for analytics.',
     schedule_interval='@daily',
-    catchup=False
+    catchup=True
     ) as dag:
 
     start = DummyOperator(

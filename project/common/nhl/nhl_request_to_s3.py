@@ -179,6 +179,7 @@ def stage_game_play_players_metadata_s3(ti, task):
         #Add each individual player metadata object to list
         for key, val in json['gameData']['players'].items():
             df = pd.json_normalize(val , sep ='_')
+            
             player_metadata_df_list.append(df)
 
         try:
@@ -197,7 +198,7 @@ def stage_game_play_players_metadata_s3(ti, task):
             ## Raised whem game is postponed and game_id issues null records
             pass
 
-    if len(player_metadata_df_list) == 0:
+    if len(player_metadata_list) == 0:
         print("Nothing to load.")            
     else:
         df = pd.concat(player_metadata_list, ignore_index=True)

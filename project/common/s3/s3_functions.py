@@ -1,7 +1,6 @@
 import awswrangler as wr
 import boto3
 
-
 def upload_df_to_s3(df, bucket, subfolder, partition_cols):
     if df.empty == False:
         #S3
