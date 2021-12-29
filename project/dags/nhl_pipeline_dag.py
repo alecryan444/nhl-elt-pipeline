@@ -3,13 +3,11 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
 
-#Custom Functions
-from common.nhl_request import extract_game_ids_to_list
-from common.nhl_request import extract_game_data
-from common.nhl_request import extract_game_metadata
-from common.nhl_request import extract_player_metadata
-from common.nhl_request import extract_game_play_players
-
+from common.nhl_request_to_s3 import extract_game_ids_to_list
+from common.nhl_request_to_s3 import stage_game_data_s3
+from common.nhl_request_to_s3 import stage_game_metadata_s3
+from common.nhl_request_to_s3 import stage_game_play_players_s3
+from common.nhl_request_to_s3 import stage_game_play_players_metadata_s3
 
 default_args = {
     'owner':'airflow',
@@ -33,39 +31,34 @@ with DAG(
         python_callable=extract_game_ids_to_list,
         provide_context=True
     )
+    with TaskGroup('stage_nhl_data_s3') as stage_nhl_data_s3:
 
-    with TaskGroup('request_nhl_data') as request_nhl_data:
-        extract_game_data = PythonOperator(
-            task_id = 'extract_game_data',
-            python_callable=extract_game_data,
+        stage_game_data_s3 = PythonOperator(
+            task_id = 'stage_game_data_s3',
+            python_callable = stage_game_data_s3,
             provide_context=True
-            )   
+        )
 
-        extract_game_metadata = PythonOperator(
-            task_id = 'extract_game_metadata',
-            python_callable=extract_game_metadata,
+        stage_game_metadata_s3 = PythonOperator(
+            task_id = 'stage_game_metadata_s3',
+            python_callable = stage_game_metadata_s3,
             provide_context=True
-            )
+        )
 
-        extract_game_play_players = PythonOperator(
-            task_id = 'extract_game_play_players',
-            python_callable=extract_game_play_players,
+        stage_game_play_players_s3 = PythonOperator(
+            task_id = 'stage_game_play_players_s3',
+            python_callable = stage_game_play_players_s3,
             provide_context=True
-            )
+        )
 
-        extract_player_metadata = PythonOperator(
-            task_id = 'extract_player_metadata',
-            python_callable=extract_player_metadata,
+        stage_game_play_players_metadata_s3 = PythonOperator(
+            task_id = 'stage_game_play_players_metadata_s3',
+            python_callable = stage_game_play_players_metadata_s3,
             provide_context=True
-            )
+        )
 
     end = DummyOperator(
         task_id='end'
     )
-
-    game_data_exists = BranchPythonOperator(
-        task_id = 'game_data_exists',
-        python_callable=
-    )
     
-    start >> extract_game_ids_to_list >> request_nhl_data >> end
+    start >> extract_game_ids_to_list >> stage_nhl_data_s3 >> end

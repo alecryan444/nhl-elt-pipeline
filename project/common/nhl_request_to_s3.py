@@ -1,11 +1,15 @@
 import requests
 from datetime import datetime
 import pandas as pd
+import awswrangler as wr
+import boto3
 
 base_url = 'https://statsapi.web.nhl.com/api/v1'
 
+BUCKET = 'nhl-db-data'
 
-def extract_game_ids_to_list(ds, ti):
+
+def extract_game_ids_to_list(ds, ti, task):
     """Creates list of game_ids that can be used to get player stats"""
     
     game_id_list = []
@@ -41,7 +45,7 @@ def extract_game_plays(game_id_list):
     return json_list
 
 
-def extract_game_data(ds, ti, **kwargs):
+def stage_game_data_s3(ti, task):
     '''Extracts/flattens game play data from NHL API JSON response object'''
 
     game_id_list = ti.xcom_pull(task_ids='extract_game_ids_to_list', key = 'game_id_list')
@@ -73,19 +77,26 @@ def extract_game_data(ds, ti, **kwargs):
 
         plays_list.append(plays)
 
-    try:
+    if len(plays_list) == 0:
+        print("Nothing to load.")            
+    else:  
         df = pd.concat(plays_list, ignore_index=True)
 
-        json_obj = df.to_json(orient='records')
+        if df.empty == False:
+
+            print(df.head())
     
-    except ValueError:
-        #Produced when nothing to concatenate/ no player data is returned
-        json_obj = []
-    
-    return json_obj
+            #S3
+            session = boto3.Session(profile_name='aryan')
+            subfolder = task.task_id
+            write_path = f's3://{BUCKET}/{subfolder}/'
+            print(write_path)
+            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
+        else:
+            print("Dataframe is empty. Nothing to load.")
 
 
-def extract_game_metadata(ds, ti):
+def stage_game_metadata_s3(ti, task):
     '''Extracts/flattens game metadata from NHL API JSON response object'''
 
     game_id_list = ti.xcom_pull(task_ids='extract_game_ids_to_list', key = 'game_id_list')
@@ -105,19 +116,25 @@ def extract_game_metadata(ds, ti):
         
         game_metadata_list.append(game_metadata)
 
-    try:
+    if len(game_metadata_list) == 0:
+        print("Nothing to load.")            
+    else:
         df = pd.concat(game_metadata_list, ignore_index=True)
 
-        json_obj = df.to_json(orient='records')
+        if df.empty == False:
+            print(df.head())
     
-    except ValueError:
-        #Produced when nothing to concatenate/ no player data is returned
-        json_obj = []
-    
-    return json_obj
+            #S3
+            session = boto3.Session(profile_name='aryan')
+            subfolder = task.task_id
+            write_path = f's3://{BUCKET}/{subfolder}/'
+            print(write_path)
+            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
+        else:
+            print("Dataframe is empty. Nothing to load.")
 
 
-def extract_game_play_players(ds, ti):
+def stage_game_play_players_s3(ti, task):
     '''Extracts/flattens game play players data from NHL API JSON response object'''
 
     game_id_list = ti.xcom_pull(task_ids='extract_game_ids_to_list', key = 'game_id_list')
@@ -153,20 +170,26 @@ def extract_game_play_players(ds, ti):
             #Raised when game is postponed
             #If game is postponed there are no plays that occur
             pass
-                
-    try:
+        
+    if len(game_play_players_list) == 0:
+        print("Nothing to load.")            
+    else:
         df = pd.concat(game_play_players_list, ignore_index=True)
 
-        json_obj = df.to_json(orient='records')
-    
-    except ValueError:
-        #Produced when nothing to concatenate/ no player data is returned
-        json_obj = []
-    
-    return json_obj
-    
+        if df.empty == False:
 
-def extract_player_metadata(ds, ti):
+            print(df.head())
+    
+            #S3
+            session = boto3.Session(profile_name='aryan')
+            subfolder = task.task_id
+            write_path = f's3://{BUCKET}/{subfolder}/'
+            print(write_path)
+            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
+        else:
+            print("Dataframe is empty. Nothing to load.")
+
+def stage_game_play_players_metadata_s3(ti, task):
     '''Extracts/flattens game player metadata from NHL API JSON response object'''
 
     game_id_list = ti.xcom_pull(task_ids='extract_game_ids_to_list', key = 'game_id_list')
@@ -204,13 +227,20 @@ def extract_player_metadata(ds, ti):
             ## Raised whem game is postponed and game_id issues null records
             pass
 
-    try:
-        df = pd.concat(player_metadata_list, ignore_index=True)
+    if len(player_metadata_df_list) == 0:
+        print("Nothing to load.")            
+    else:
+        df = pd.concat(player_metadata_df_list, ignore_index=True)
 
-        json_obj = df.to_json(orient='records')
+        if df.empty == False:
+
+            print(df.head())
     
-    except ValueError:
-        #Produced when nothing to concatenate/ no player data is returned
-        json_obj = []
-    
-    return json_obj
+            #S3
+            session = boto3.Session(profile_name='aryan')
+            subfolder = task.task_id
+            write_path = f's3://{BUCKET}/{subfolder}/'
+            print(write_path)
+            wr.s3.to_parquet(df, write_path, mode = 'overwrite_partitions', partition_cols = ['gamePartition'], dataset=True, boto3_session = session)
+        else:
+            print("Dataframe is empty. Nothing to load.")
