@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
 
@@ -63,5 +63,9 @@ with DAG(
         task_id='end'
     )
 
+    game_data_exists = BranchPythonOperator(
+        task_id = 'game_data_exists',
+        python_callable=
+    )
     
     start >> extract_game_ids_to_list >> request_nhl_data >> end
