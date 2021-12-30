@@ -40,4 +40,5 @@ def stage_nhl_game_data(ti, task):
         json = r.json()
         df = pd.DataFrame(json)
 
+        #Upload JSON to s3 Bucket
         upload_json_to_s3(df, BUCKET, task.task_id, ['gamePk'])

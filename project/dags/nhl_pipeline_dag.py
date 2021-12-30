@@ -8,7 +8,7 @@ from common.nhl.nhl_request_to_s3 import stage_nhl_game_data
 
 default_args = {
     'owner':'airflow',
-    'start_date':'2021-09-26' #start of 2021-22 preseason,
+    'start_date':'2021-12-14' #start of 2021-22 preseason,
 }
 
 with DAG(
