@@ -4,10 +4,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
 
 from common.nhl.nhl_request_to_s3 import extract_game_ids_to_list
-from common.nhl.nhl_request_to_s3 import stage_game_data_s3
-from common.nhl.nhl_request_to_s3 import stage_game_metadata_s3
-from common.nhl.nhl_request_to_s3 import stage_game_play_players_s3
-from common.nhl.nhl_request_to_s3 import stage_game_play_players_metadata_s3
+from common.nhl.nhl_request_to_s3 import stage_nhl_game_data
 
 default_args = {
     'owner':'airflow',
@@ -31,34 +28,15 @@ with DAG(
         python_callable=extract_game_ids_to_list,
         provide_context=True
     )
-    with TaskGroup('stage_nhl_data_s3') as stage_nhl_data_s3:
-
-        stage_game_data_s3 = PythonOperator(
-            task_id = 'stage_game_data_s3',
-            python_callable = stage_game_data_s3,
-            provide_context=True
-        )
-
-        stage_game_metadata_s3 = PythonOperator(
-            task_id = 'stage_game_metadata_s3',
-            python_callable = stage_game_metadata_s3,
-            provide_context=True
-        )
-
-        stage_game_play_players_s3 = PythonOperator(
-            task_id = 'stage_game_play_players_s3',
-            python_callable = stage_game_play_players_s3,
-            provide_context=True
-        )
-
-        stage_game_play_players_metadata_s3 = PythonOperator(
-            task_id = 'stage_game_play_players_metadata_s3',
-            python_callable = stage_game_play_players_metadata_s3,
-            provide_context=True
-        )
+    
+    stage_nhl_game_data = PythonOperator(
+        task_id = 'stage_nhl_game_data',
+        python_callable=stage_nhl_game_data,
+        provide_context=True
+    )    
 
     end = DummyOperator(
         task_id='end'
     )
     
-    start >> extract_game_ids_to_list >> stage_nhl_data_s3 >> end
+    start >> extract_game_ids_to_list >> stage_nhl_game_data >> end
